@@ -25,7 +25,8 @@ def ejecutar_algoritmo(fichero, columna_salida, clase_positiva):
     """
     entrada = leer_entrada(fichero)
     checkear_entrada(df=entrada, col=columna_salida, positiva=clase_positiva)
-    cn2 = CN2_SD(entrada, columna_salida, clase_positiva, max_exp=2, weight_method=1, gamma=0.1)
+    cn2 = CN2_SD(entrada, columna_salida, clase_positiva, max_exp=2, weight_method=1, gamma=0.1, min_wracc=0.001)
     cn2.execute()
+
 
 ejecutar_algoritmo(fichero, columna_salida, clase_positiva)
