@@ -55,45 +55,44 @@ class CN2_SD:
         self.gamma = gamma
         # Initialize current_data (we keep track of weights)
         self.current_data = self.add_weights(input_data)
+        # Initialize current rule list as empty
+        self.rule_list = []
 
     def execute(self):
         """
         Executes the CN2-SD algorithm step by step. Prints the resulting rules at the end.
         :return:
         """
-        rule_list = []
         end = False
         while not end:
-            end, best_rule = self.do_step(rule_list)
+            end, best_rule = self.do_step()
         print("Rule list:")
-        for rule in rule_list:
+        for rule in self.rule_list:
             print(rule, rule.wracc)
-        return rule_list
+        return self.rule_list
 
-    def do_step(self, rule_list):
+    def do_step(self):
         """
         Performs a step in the CN2-SD algorithm. First,
         it tries to find the best rule to apply, it applies it to the
         data (updating weights if necessary) and checks end condition.
-        :param rule_list: Current rule list
         :return: End condition (True or False) and best rule found (can be "None")
         """
         end = False
-        best_rule = self.find_best_rule(rule_list)
+        best_rule = self.find_best_rule()
         if best_rule and best_rule.wracc >= self.min_wracc:
             # Update weights
             self.apply_rule(best_rule)
-            rule_list.append(best_rule)
+            self.rule_list.append(best_rule)
         if self.stop_condition(best_rule):
             end = True
         return end, best_rule
 
-    def find_best_rule(self, current_rule_list):
+    def find_best_rule(self):
         """
         Method that finds the best rule to apply to the current data to
         generate a subgroup with the highest weighted relative accuracy possible.
         It can not return a rule already used.
-        :param current_rule_list: Current list of rules found before
         :return: Best rule found ("None" if no valid rule is found)
         """
         rule_set = []
@@ -104,7 +103,7 @@ class CN2_SD:
         end_find = False
         first = True
         while not end_find:
-            new_rule_set = self.generate_rule_set(rule_set, selector_list, first, current_rule_list)
+            new_rule_set = self.generate_rule_set(rule_set, selector_list, first)
             first = False
             best_rule = self.find_best(new_rule_set, best_rule)
             while len(new_rule_set) > self.max_expr:
@@ -137,7 +136,7 @@ class CN2_SD:
                         selectors.append(new_antecedent)
         return selectors
 
-    def generate_rule_set(self, rule_set, selector_list, first, current_rule_list):
+    def generate_rule_set(self, rule_set, selector_list, first):
         """
         Generates a rule set using current rule set and the list of
         selectors, making all pairs. If it is the first time this
@@ -147,7 +146,6 @@ class CN2_SD:
         :param rule_set: Current rule set
         :param selector_list: List of selectors / antecedent in current data
         :param first: Boolean that tells if it is first time the function is called
-        :param current_rule_list: Current rule list already applied to data
         :return: A new rule set made from previous one and selectors
         """
         new_rule_set = []
@@ -155,14 +153,14 @@ class CN2_SD:
             for sel in selector_list:
                 rule = Rule()
                 rule.add_antecedent(sel)
-                if rule.is_valid(current_rule_list):
+                if rule.is_valid(self.rule_list):
                     new_rule_set.append(rule)
         else:
             for rule in rule_set:
                 for sel in selector_list:
                     new_rule = Rule.rule_copy(rule)
                     new_rule.add_antecedent(sel)
-                    if new_rule.is_valid(current_rule_list):
+                    if new_rule.is_valid(self.rule_list):
                         new_rule_set.append(new_rule)
         return new_rule_set
 
