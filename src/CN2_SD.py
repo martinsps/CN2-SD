@@ -196,15 +196,18 @@ class CN2_SD:
         data_rule_positive = data_rule[data_rule[self.col_output] == self.positive_class]
         # Multiplicative method
         if self.weight_method == 1:
-            self.current_data.loc[data_rule_positive.index, "weights"] = data_rule_positive["weights"].apply(
-                lambda x: x * self.gamma)
+            self.current_data.loc[data_rule_positive.index, "weights"] = data_rule_positive["weight_times"].apply(
+                lambda x: self.gamma ** x)
+
         # Additive method
         elif self.weight_method == 2:
-            self.current_data.loc[data_rule_positive.index, "weights"] = data_rule_positive["weights"].apply(
+            self.current_data.loc[data_rule_positive.index, "weights"] = data_rule_positive["weight_times"].apply(
                 lambda x: 1 / (x + 1))
         # Normal CN2: examples covered eliminated
         elif self.weight_method == 0:
             self.current_data = data_frame_difference(self.current_data, data_rule)
+        self.current_data.loc[data_rule_positive.index, "weight_times"] = data_rule_positive["weight_times"].apply(
+            lambda x: x + 1)
 
     def stop_condition(self, best_rule):
         """
@@ -225,12 +228,15 @@ class CN2_SD:
     def add_weights(self, data):
         """
         Adds a column of weights to the data, initialized
-        to ones.
+        to ones and a column of weight times, to control
+        how many times weights have been updated.
         :param data: Initial data
         :return: Data with the added weights column
         """
         initial_weights = np.ones(len(data.index))
         data["weights"] = initial_weights
+        updates = np.zeros(len(data.index))
+        data["weight_times"] = updates
         return data
 
     def find_best(self, rule_set, best_rule):
