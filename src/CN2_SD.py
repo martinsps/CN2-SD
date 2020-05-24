@@ -78,15 +78,13 @@ class CN2_SD:
         data (updating weights if necessary) and checks end condition.
         :return: End condition (True or False) and best rule found (can be "None")
         """
-        end = False
         best_rule = self.find_best_rule()
         if best_rule and best_rule.wracc >= self.min_wracc:
+            print(best_rule.wracc)
             # Update weights
             self.apply_rule(best_rule)
             self.rule_list.append(best_rule)
-        if self.stop_condition(best_rule):
-            end = True
-        return end, best_rule
+        return self.stop_condition(best_rule), best_rule
 
     def find_best_rule(self):
         """
